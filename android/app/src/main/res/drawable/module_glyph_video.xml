@@ -1,0 +1,17 @@
+<!-- 模块品牌 glyph：月赏视频（屏幕 + 播放三角，2dp 圆头描边统一风格；纯视觉，无障碍语义由外层承担） -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M4,7 C4,5.9 4.9,5 6,5 L18,5 C19.1,5 20,5.9 20,7 L20,15.5 C20,16.6 19.1,17.5 18,17.5 L6,17.5 C4.9,17.5 4,16.6 4,15.5 Z"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M10.2,8.9 L14.9,11.1 C15.3,11.3 15.3,11.7 14.9,11.9 L10.2,14.1 Z"
+        android:fillColor="#FFFFFFFF" />
+</vector>

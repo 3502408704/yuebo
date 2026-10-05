@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <external-files-path name="updates" path="updates/" />
+    <external-files-path name="logs" path="logs/" />
+    <cache-path name="subtitle_exports" path="subtitle_exports/" />
+</paths>

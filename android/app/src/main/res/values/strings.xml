@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_player_description">播放器控制小部件，显示当前歌曲、歌手和歌词，支持播放、暂停、上一首与下一首。</string>
+    <string name="widget_default_title">未知歌曲</string>
+    <string name="widget_default_artist">未知歌手</string>
+    <string name="widget_default_lyric">暂无歌词</string>
+    <string name="widget_previous">上一首</string>
+    <string name="widget_play">播放</string>
+    <string name="widget_pause">暂停</string>
+    <string name="widget_next">下一首</string>
+</resources>

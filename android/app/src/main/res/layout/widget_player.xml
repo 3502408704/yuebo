@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_player_bg"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:baselineAligned="false"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/widget_info"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:baselineAligned="false"
+            android:gravity="center_vertical"
+            android:minHeight="80dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/widget_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:ellipsize="end"
+                android:focusable="true"
+                android:importantForAccessibility="yes"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:text="@string/widget_default_title"
+                android:textColor="#FFF2F2F5"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_lyric"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:clickable="true"
+                android:ellipsize="end"
+                android:focusable="true"
+                android:importantForAccessibility="yes"
+                android:maxLines="2"
+                android:text="@string/widget_default_lyric"
+                android:textColor="#FFFFB080"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/widget_previous"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/widget_previous"
+                android:scaleType="centerInside"
+                android:src="@android:drawable/ic_media_previous"
+                android:tint="#FFF2F2F5" />
+
+            <ImageButton
+                android:id="@+id/widget_play_pause"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/widget_play"
+                android:scaleType="centerInside"
+                android:src="@android:drawable/ic_media_play"
+                android:tint="#FFFFB080" />
+
+            <ImageButton
+                android:id="@+id/widget_next"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/widget_next"
+                android:scaleType="centerInside"
+                android:src="@android:drawable/ic_media_next"
+                android:tint="#FFF2F2F5" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

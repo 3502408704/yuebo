@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <exclude domain="sharedpref" path="baidu_pan_account.xml" />
+    <exclude domain="sharedpref" path="bilibili_account.xml" />
+    <exclude domain="sharedpref" path="quark_pan_account.xml" />
+</full-backup-content>

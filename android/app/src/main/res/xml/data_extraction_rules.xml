@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup disableIfNoEncryptionCapabilities="true">
+        <exclude domain="sharedpref" path="baidu_pan_account.xml" />
+        <exclude domain="sharedpref" path="bilibili_account.xml" />
+        <exclude domain="sharedpref" path="quark_pan_account.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="baidu_pan_account.xml" />
+        <exclude domain="sharedpref" path="bilibili_account.xml" />
+        <exclude domain="sharedpref" path="quark_pan_account.xml" />
+    </device-transfer>
+</data-extraction-rules>

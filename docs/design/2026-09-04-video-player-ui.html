@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>视频播放器 UI 重设计 · 2026-09-04</title>
+<style>
+  /* ===== 玻璃拟态主题令牌（与 DesignTokens.kt 一致） ===== */
+  :root {
+    --bg-deep: #0F0F12;
+    --bg-base: #14141A;
+    --bg-surface: #1A1A20;
+    --bg-elevated: #22222A;
+    --glass-tint: rgba(255,255,255,0.08);
+    --accent: #FF9A62;
+    --accent-dim: rgba(255,154,98,0.70);
+    --accent-glow: rgba(255,154,98,0.20);
+    --text-primary: #F2F2F5;
+    --text-secondary: rgba(242,242,245,0.70);
+    --text-tertiary: rgba(242,242,245,0.55);
+    --text-on-accent: #1A1A20;
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; font-family:"Microsoft YaHei UI","Microsoft YaHei",system-ui,sans-serif; }
+  body { background:#0A0A0D; color:var(--text-primary); padding:32px; }
+  h1 { font-size:22px; font-weight:600; margin-bottom:4px; }
+  .sub { color:var(--text-secondary); font-size:13px; margin-bottom:28px; }
+  .board { display:flex; flex-wrap:wrap; gap:40px; align-items:flex-start; }
+  .frame-wrap { display:flex; flex-direction:column; gap:10px; }
+  .frame-label { font-size:14px; font-weight:600; color:var(--accent); }
+
+  /* ===== 手机壳 ===== */
+  .phone {
+    width:340px; height:760px; border-radius:24px; overflow:hidden;
+    background:var(--bg-base); border:1px solid #2A2A33;
+    display:flex; flex-direction:column; position:relative;
+    box-shadow:0 8px 32px rgba(0,0,0,.5);
+  }
+  .landscape {
+    width:760px; height:358px; border-radius:18px;
+  }
+
+  /* ===== 视频区 ===== */
+  .video-area {
+    position:relative; width:100%; aspect-ratio:16/9; flex:none;
+    background:linear-gradient(135deg,#2B2F38 0%,#1D2027 55%,#262A33 100%);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .video-area.full { aspect-ratio:auto; flex:1; }
+  .video-fake { color:#565C68; font-size:13px; letter-spacing:2px; }
+  .center-btns {
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:36px;
+  }
+  .seek-btn {
+    width:44px; height:44px; border-radius:50%; border:none; cursor:pointer;
+    background:rgba(0,0,0,0.45); color:var(--text-primary);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-size:10px; font-weight:600;
+  }
+  .seek-btn svg { width:20px; height:20px; }
+  .seek-btn .num { margin-top:-2px; }
+  .play-fab {
+    width:64px; height:64px; border-radius:50%; border:none; cursor:pointer;
+    background:rgba(0,0,0,0.55); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .play-fab svg { width:30px; height:30px; }
+  .state-pill {
+    position:absolute; left:10px; top:10px; padding:4px 10px; border-radius:999px;
+    background:rgba(0,0,0,0.5); color:var(--text-secondary); font-size:11px;
+  }
+
+  /* ===== 通用控制件 ===== */
+  .panel { background:var(--bg-surface); padding:12px 16px; display:flex; flex-direction:column; gap:8px; flex:1; overflow:hidden; }
+  .row { display:flex; align-items:center; gap:6px; }
+  .title { font-size:15px; font-weight:500; line-height:1.35; }
+  .status { font-size:12px; color:var(--text-secondary); }
+  .time-row { display:flex; justify-content:space-between; font-size:12px; color:var(--text-tertiary); font-variant-numeric:tabular-nums; }
+
+  .slider { position:relative; height:28px; display:flex; align-items:center; }
+  .slider .track { width:100%; height:4px; border-radius:2px; background:rgba(255,255,255,0.16); position:relative; }
+  .slider .fill { position:absolute; left:0; top:0; bottom:0; width:34%; border-radius:2px; background:var(--accent); }
+  .slider .thumb {
+    position:absolute; left:34%; top:50%; transform:translate(-50%,-50%);
+    width:16px; height:16px; border-radius:50%; background:var(--accent);
+    box-shadow:0 0 0 6px var(--accent-glow);
+  }
+  .slider.tall .track, .slider.tall .fill { height:3px; }
+
+  .icon-btn {
+    width:44px; height:44px; border-radius:50%; border:none; background:transparent; color:var(--text-primary);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; flex:none;
+  }
+  .icon-btn svg { width:22px; height:22px; }
+  .icon-btn.big svg { width:28px; height:28px; }
+  .icon-btn.accent { color:var(--accent); }
+  .icon-btn:disabled { opacity:0.38; }
+
+  .chip {
+    display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 14px;
+    border-radius:8px; border:1px solid rgba(255,154,98,0.45); background:transparent;
+    color:var(--accent); font-size:13px; cursor:pointer; flex:none;
+  }
+  .chip.selected { background:var(--accent-glow); border-color:var(--accent); font-weight:600; }
+  .chip.plain { border-color:rgba(255,255,255,0.22); color:var(--text-primary); }
+  .chip svg { width:16px; height:16px; }
+
+  .vol-row { display:flex; align-items:center; gap:10px; }
+  .vol-row svg { width:20px; height:20px; color:var(--text-secondary); flex:none; }
+
+  .ep-chips { display:flex; gap:8px; overflow:hidden; }
+  .ep-chip {
+    height:32px; padding:0 12px; display:inline-flex; align-items:center; border-radius:8px;
+    background:var(--bg-elevated); color:var(--text-secondary); font-size:12px; white-space:nowrap; flex:none;
+  }
+  .ep-chip.active { background:var(--accent-glow); color:var(--accent); border:1px solid rgba(255,154,98,0.45); }
+
+  /* ===== 横屏叠层 ===== */
+  .scrim-top, .scrim-bottom {
+    position:absolute; left:0; right:0; z-index:5;
+    display:flex; flex-direction:column; gap:2px;
+    padding:8px 16px 10px;
+  }
+  .scrim-top {
+    top:0; padding-top:10px;
+    background:linear-gradient(to bottom, rgba(0,0,0,0.78), rgba(0,0,0,0.42) 70%, transparent);
+    flex-direction:row; align-items:center; gap:4px;
+  }
+  .scrim-bottom {
+    bottom:0;
+    background:linear-gradient(to top, rgba(0,0,0,0.80), rgba(0,0,0,0.45) 70%, transparent);
+  }
+  .scrim-title { flex:1; min-width:0; }
+  .scrim-title .title { font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .scrim-top .icon-btn, .scrim-bottom .icon-btn { color:#fff; }
+  .transport { display:flex; align-items:center; justify-content:center; gap:10px; }
+  .transport .spacer { flex:1; }
+  .ltime { color:rgba(255,255,255,0.85); font-size:12px; font-variant-numeric:tabular-nums; }
+
+  /* ===== 弹层 ===== */
+  .menu {
+    position:absolute; z-index:20; background:var(--bg-elevated); border-radius:12px;
+    box-shadow:0 8px 28px rgba(0,0,0,0.6); padding:8px 0; min-width:128px;
+    border:1px solid rgba(255,255,255,0.06);
+  }
+  .menu .item {
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:11px 16px; font-size:14px; color:var(--text-primary); cursor:pointer;
+  }
+  .menu .item .check { color:var(--accent); font-weight:700; width:18px; text-align:center; }
+  .menu .item.active { background:rgba(255,154,98,0.10); }
+  .menu-anchor-note { position:absolute; z-index:21; font-size:11px; color:var(--accent); }
+
+  .epsheet {
+    position:absolute; right:0; top:0; bottom:0; width:230px; z-index:20;
+    background:rgba(20,20,26,0.96); border-left:1px solid rgba(255,255,255,0.08);
+    padding:12px 0; display:flex; flex-direction:column;
+  }
+  .epsheet .head { padding:0 14px 8px; font-size:14px; font-weight:600; color:var(--text-primary); display:flex; justify-content:space-between; align-items:center; }
+  .epsheet .list { flex:1; overflow:hidden; display:flex; flex-direction:column; }
+  .epsheet .ep {
+    padding:12px 14px; font-size:13px; color:var(--text-secondary); display:flex; gap:8px; align-items:center;
+  }
+  .epsheet .ep.active { color:var(--accent); background:rgba(255,154,98,0.10); font-weight:600; }
+  .epsheet .ep .idx { color:var(--text-tertiary); font-variant-numeric:tabular-nums; font-size:12px; width:20px; }
+
+  /* ===== 标注 ===== */
+  .notes { font-size:12.5px; color:var(--text-secondary); line-height:1.9; max-width:340px; }
+  .notes b { color:var(--accent); font-weight:600; }
+  .notes.wide { max-width:760px; }
+  .tag { display:inline-block; background:var(--accent-glow); color:var(--accent); border-radius:4px; padding:0 6px; font-size:11px; margin-right:4px; }
+</style>
+</head>
+<body>
+<h1>视频播放器 UI 重设计</h1>
+<div class="sub">玻璃拟态令牌 · 横竖屏分离布局 · 倍速 / ±10s / 选集 / 投送 · 全部控件 ≥48dp · TalkBack 全语义</div>
+
+<div class="board">
+
+  <!-- ================= 竖屏 ================= -->
+  <div class="frame-wrap">
+    <div class="frame-label">① 竖屏 · 控制面板常显（无障碍优先）</div>
+    <div class="phone">
+      <div class="video-area">
+        <div class="video-fake">16 : 9 视频画面</div>
+        <div class="center-btns">
+          <button class="seek-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6H4c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8z"/></svg><span class="num">10</span></button>
+          <button class="play-fab"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></button>
+          <button class="seek-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1l5 5-5 5V7c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6h2c0 4.4-3.6 8-8 8s-8-3.6-8-8 3.6-8 8-8z"/></svg><span class="num">10</span></button>
+        </div>
+      </div>
+      <div class="panel">
+        <div>
+          <div class="title">第一集 逃离废墟城市</div>
+          <div class="status">正在播放</div>
+        </div>
+        <div class="slider"><div class="track"><div class="fill"></div><div class="thumb"></div></div></div>
+        <div class="time-row"><span>04:12</span><span>12:30</span></div>
+        <div class="row" style="justify-content:center; gap:4px;">
+          <button class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+          <button class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6H4c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8z"/></svg></button>
+          <button class="icon-btn big accent"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+          <button class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1l5 5-5 5V7c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6h2c0 4.4-3.6 8-8 8s-8-3.6-8-8 3.6-8 8-8z"/></svg></button>
+          <button class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zm-2 6L5.5 6v12z"/></svg></button>
+        </div>
+        <div class="row" style="justify-content:space-between;">
+          <button class="chip selected">倍速 1.0x</button>
+          <button class="chip plain">选集 12</button>
+          <button class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 3H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM1 18v3h3c0-1.7-1.3-3-3-3zm0-4v2c2.8 0 5 2.2 5 5h2c0-3.9-3.1-7-7-7zm0-4v2c5 0 9 4 9 9h2c0-6.1-4.9-11-11-11z"/></svg></button>
+          <button class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg></button>
+        </div>
+        <div class="vol-row">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.8-1-3.3-2.5-4v8c1.5-.7 2.5-2.2 2.5-4z"/></svg>
+          <div class="slider tall" style="flex:1;"><div class="track"><div class="fill" style="width:62%"></div><div class="thumb" style="left:62%"></div></div></div>
+        </div>
+        <div class="ep-chips">
+          <span class="ep-chip active">1. 逃离废墟城市</span>
+          <span class="ep-chip">2. 地下铁遭遇战</span>
+          <span class="ep-chip">3. 信号塔之夜</span>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <b>竖屏变化：</b><br>
+      <span class="tag">新增</span>传输行加入 <b>±10秒</b> 快退/快进（长按上一/下一集的旧行为保留）；<br>
+      <span class="tag">新增</span><b>倍速</b>胶囊按钮，直接显示当前速度；<br>
+      <span class="tag">排布</span>标题/状态移入面板顶部，进度条上移，一屏读完；<br>
+      <span class="tag">保留</span>面板常显不自动隐藏（TalkBack 可靠浏览）。
+    </div>
+  </div>
+
+  <!-- ================= 横屏 ================= -->
+  <div class="frame-wrap">
+    <div class="frame-label">② 横屏 · 全屏沉浸叠层（3 秒自动隐藏，TalkBack 下禁用）</div>
+    <div class="phone landscape">
+      <div class="video-area full">
+        <div class="video-fake">全屏视频画面</div>
+        <!-- 顶部渐变 -->
+        <div class="scrim-top">
+          <button class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20v-2z"/></svg></button>
+          <div class="scrim-title">
+            <div class="title">第一集 逃离废墟城市</div>
+            <div class="status" style="color:rgba(255,255,255,0.7)">正在播放</div>
+          </div>
+          <button class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 3H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM1 18v3h3c0-1.7-1.3-3-3-3zm0-4v2c2.8 0 5 2.2 5 5h2c0-3.9-3.1-7-7-7zm0-4v2c5 0 9 4 9 9h2c0-6.1-4.9-11-11-11z"/></svg></button>
+          <button class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg></button>
+        </div>
+        <!-- 中央传输 -->
+        <div class="center-btns">
+          <button class="seek-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6H4c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8z"/></svg><span class="num">10</span></button>
+          <button class="play-fab"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+          <button class="seek-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1l5 5-5 5V7c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6h2c0 4.4-3.6 8-8 8s-8-3.6-8-8 3.6-8 8-8z"/></svg><span class="num">10</span></button>
+        </div>
+        <!-- 底部渐变 -->
+        <div class="scrim-bottom">
+          <div class="slider"><div class="track" style="background:rgba(255,255,255,0.3)"><div class="fill"></div><div class="thumb"></div></div></div>
+          <div class="time-row"><span class="ltime">04:12</span><span class="ltime">12:30</span></div>
+          <div class="transport">
+            <button class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+            <button class="icon-btn big"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+            <button class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zm-2 6L5.5 6v12z"/></svg></button>
+            <div class="spacer"></div>
+            <button class="chip selected" style="background:rgba(255,154,98,0.22)">倍速 1.0x</button>
+            <button class="chip plain">选集 12</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes wide">
+      <b>横屏变化（与竖屏彻底分离）：</b><br>
+      <span class="tag">布局</span>视频 <b>铺满全屏</b>（不再保留竖屏式底部大面板）；控制层改为 <b>顶部/底部渐变叠层 + 中央传输键</b>；<br>
+      <span class="tag">布局</span>顶栏：返回 · 标题/状态 · <b>投送 · 退出全屏</b>（移到顶栏，远离误触区）；<br>
+      <span class="tag">布局</span>底栏：进度条+时间 → 上一集/播放/下一集 → <b>倍速 · 选集</b>；音量滑杆移出横屏（交给音量键），降低面板高度；<br>
+      <span class="tag">选集</span>横屏点「选集」从<b>右侧滑出列表面板</b>（不再把整排分集塞进底栏）；<br>
+      <span class="tag">行为</span>3 秒自动隐藏维持现状，TalkBack 开启时永不隐藏；单击切显示/隐藏、双击播放暂停不变。
+    </div>
+  </div>
+
+  <!-- ================= 横屏 · 倍速菜单 + 选集面板 ================= -->
+  <div class="frame-wrap">
+    <div class="frame-label">③ 横屏 · 倍速菜单（锚定按钮上方）与选集侧板</div>
+    <div class="phone landscape">
+      <div class="video-area full">
+        <div class="video-fake">全屏视频画面（控制层半透明示意）</div>
+        <div class="scrim-top" style="opacity:.45">
+          <button class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20v-2z"/></svg></button>
+          <div class="scrim-title"><div class="title">第一集 逃离废墟城市</div></div>
+        </div>
+        <!-- 倍速菜单（锚定在倍速按钮上方） -->
+        <div class="menu" style="right:118px; bottom:76px;">
+          <div class="item"><span>2.0x</span><span class="check"></span></div>
+          <div class="item"><span>1.5x</span><span class="check"></span></div>
+          <div class="item"><span>1.25x</span><span class="check"></span></div>
+          <div class="item active"><span>1.0x</span><span class="check">✓</span></div>
+          <div class="item"><span>0.75x</span><span class="check"></span></div>
+          <div class="item"><span>0.5x</span><span class="check"></span></div>
+        </div>
+        <div class="scrim-bottom" style="opacity:.45">
+          <div class="slider"><div class="track" style="background:rgba(255,255,255,0.3)"><div class="fill"></div></div></div>
+          <div class="transport">
+            <button class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+            <button class="icon-btn big"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+            <button class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zm-2 6L5.5 6v12z"/></svg></button>
+            <div class="spacer"></div>
+            <button class="chip selected" style="background:rgba(255,154,98,0.22)">倍速 1.0x</button>
+            <button class="chip plain">选集 12</button>
+          </div>
+        </div>
+        <!-- 选集侧板 -->
+        <div class="epsheet">
+          <div class="head">选集（12）<span style="color:var(--text-tertiary);font-size:12px;">✕</span></div>
+          <div class="list">
+            <div class="ep active"><span class="idx">1</span>逃离废墟城市</div>
+            <div class="ep"><span class="idx">2</span>地下铁遭遇战</div>
+            <div class="ep"><span class="idx">3</span>信号塔之夜</div>
+            <div class="ep"><span class="idx">4</span>寂静交易所</div>
+            <div class="ep"><span class="idx">5</span>雨夜追击</div>
+            <div class="ep"><span class="idx">6</span>旧城回声</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes wide">
+      <b>倍速：</b>档位 0.5 / 0.75 / 1.0 / 1.25 / 1.5 / 2.0，与音频播放页一致；当前档<b>勾选 + 高亮</b>；选择后立即生效并持久记忆，下次进入播放页沿用。<br>
+      <b>引擎边界：</b>ExoPlayer 直链/HLS 全档可用；FFmpeg 兜底（WMV/RMVB 等旧格式）与 DLNA 投送中<b>禁用倍速按钮</b>（stateDescription 说明"当前播放方式不支持倍速"）。<br>
+      <b>选集侧板：</b>当前集高亮 + "正在播放"语义；关闭后焦点回到「选集」按钮。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

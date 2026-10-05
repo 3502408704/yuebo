@@ -1,0 +1,87 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+/android/key.properties
+/android/local.properties
+/android/app/*.jks
+/android/app/*.keystore
+/android/.cxx/
+/android/.gradle/
+/android/build/
+/android/app/build/
+/server/.env
+/server/.venv/
+/build/symbols/
+
+# OnlineMediaConsole (C#) build artifacts
+/tools/OnlineMediaConsole/bin/
+/tools/OnlineMediaConsole/obj/
+
+# Local agent state and WinForms build artifacts.
+/.zcode/
+/admin-tool/bin/
+/admin-tool/obj/
+
+# Local probes, screenshots, databases, generated graph output, and ad-hoc uploads.
+/.tmp-*
+/android/.tmp*
+/android/app/src/main/kotlin/com/example/local_music_player/graphify-out/
+/scripts/tmp_*
+/server/.pytest_cache/
+/server/**/__pycache__/
+
+# Local test stack (secrets, sqlite, snapshots, logs)
+server/local/
+
+# Go module build artifacts
+server/services/**/*.exe
+server/services/**/*.exe~
+server/services/tts-forwarder/dist/
+
+# Mimosa 安全钩子状态目录（任何层级）
+.mimosa/
+
+# 本地部署用临时源码包
+deploy-*.tar.gz
